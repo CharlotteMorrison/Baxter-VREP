@@ -2,11 +2,11 @@ import torch
 import matplotlib.pyplot as plt
 
 # Specify Name for Plots, Recordings, Database, & Model
-default_name = "Baxter_ver3X-8_test1"
-model_file = "results/" + default_name + "_model.pth"
-file_name = "results/" + default_name + "_results"
-plot_name = "results/" + default_name + "_results.png"
-database = "results/" + default_name + ".db"
+default_name = "Baxter_DQN"
+model_file = "dqn/results/models/" + default_name + "_model.pth"
+file_name = "dqn/results/" + default_name + "_results"
+plot_name = "dqn/results/plots/" + default_name + "_results.png"
+database = "dqn/results/" + default_name + ".db"
 
 # Checks if Cuda is available
 use_cuda = torch.cuda.is_available()

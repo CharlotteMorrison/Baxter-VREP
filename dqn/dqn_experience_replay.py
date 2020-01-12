@@ -1,5 +1,5 @@
 import random
-from dqn_db import insert_mem, get_all_memory
+from dqn.dqn_db import insert_mem, get_all_memory
 
 
 class ExperienceReplay(object):

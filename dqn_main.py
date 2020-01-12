@@ -2,12 +2,12 @@ import random
 import time
 import torch
 import psutil
-import dqn_constants as cons
-from dqn_algorithm import QNetAgent
+from dqn import dqn_constants as cons
+from dqn.dqn_algorithm import QNetAgent
 from vrepsim import VrepSim
 from utils import stack_frames, output_video, plot_results
-from calculations import calculate_epsilon
-from dqn_experience_replay import ExperienceReplay
+from dqn.dqn_calculations import calculate_epsilon
+from dqn.dqn_experience_replay import ExperienceReplay
 
 
 if __name__ == '__main__':
@@ -173,10 +173,10 @@ if __name__ == '__main__':
                 elapsed_time = time.time() - start_time
 
                 if video_record:
-                    output_video(episode, video_array, size)
+                    output_video(episode, video_array, size, "dqn/videos/" + cons.default_name)
 
                 if solved:
-                    output_video(episode, video_array, size)
+                    output_video(episode, video_array, size, "dqn/videos/" + cons.default_name)
 
                 if cons.write_to_file:
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
                                 system_info.used))
 
                 if episode % cons.report_interval == 0 and episode > 0:
-                    plot_results(rewards_total_episode)
+                    plot_results(rewards_total_episode, cons.plot_name)
 
                     print("\n*** Episode " + str(episode) + " ***")
                     print("Avg_Reward [last " + str(cons.report_interval) + "]: " + str(
@@ -219,4 +219,4 @@ if __name__ == '__main__':
         if system_info.percent > 98:
             break
 
-    plot_results(rewards_total_episode)
+    plot_results(rewards_total_episode, cons.plot_name)

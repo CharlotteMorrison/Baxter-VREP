@@ -1,5 +1,5 @@
 import numpy as np
-import dqn_constants as cons
+from dqn import dqn_constants as cons
 import math
 
 

@@ -1,5 +1,5 @@
 import torch.nn as nn
-import dqn_constants as cons
+from dqn import dqn_constants as cons
 
 
 class DQN(nn.Module):

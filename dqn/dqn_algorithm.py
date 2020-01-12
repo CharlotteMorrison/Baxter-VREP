@@ -1,6 +1,6 @@
-import dqn_constants as cons
-from dqn_nn import DQN
-from dqn_db import get_frequency
+from dqn import dqn_constants as cons
+from dqn.dqn_nn import DQN
+from dqn.dqn_db import get_frequency
 import torch.nn as nn
 import torch.optim as optim
 from utils import load_model, save_model, preprocess_frame
@@ -53,7 +53,7 @@ class QNetAgent(object):
         if random_for_egreedy > epsilon_egreedy:
             with torch.no_grad():
 
-                state = preprocess_frame(state)
+                state = preprocess_frame(state, cons.device)
                 action_from_nn = self.atari_nn(state)
                 action = torch.max(action_from_nn, 1)[1]
                 action = action.item()
@@ -105,10 +105,10 @@ class QNetAgent(object):
 
         state, action, new_state, reward, done = self.memory.sample(cons.batch_size)
 
-        state = [preprocess_frame(frame) for frame in state]
+        state = [preprocess_frame(frame, cons.device) for frame in state]
         state = torch.cat(state)
 
-        new_state = [preprocess_frame(frame) for frame in new_state]
+        new_state = [preprocess_frame(frame, cons.device) for frame in new_state]
         new_state = torch.cat(new_state)
 
         action = cons.LongTensor(action).to(cons.device)
@@ -137,6 +137,6 @@ class QNetAgent(object):
             self.atari_target_nn.load_state_dict(self.atari_nn.state_dict())
 
         if self.number_of_frames % cons.save_model_frequency == 0:
-            save_model(self.atari_nn)
+            save_model(self.atari_nn, cons.model_file)
 
         self.number_of_frames += 1

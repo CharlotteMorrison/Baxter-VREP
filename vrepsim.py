@@ -73,7 +73,6 @@ class VrepSim(object):
                                                                                       vrep.simx_opmode_streaming)
 
             time.sleep(1)
-
         else:
             print('Failed connecting to remote API server')
             sys.exit('Could not connect')
@@ -94,6 +93,22 @@ class VrepSim(object):
                                                      position + move_interval, vrep.simx_opmode_oneshot_wait)
 
         return error_code
+
+    def step_right(self, action):
+        """Applies an array of actions to all right joint positions.
+           Args:
+               action (list): increments to add to robot position (-0.1, 0, 0.1)
+        """
+
+        # get position of arm, increment by values, then move robot
+        start_position = []
+
+        for x in range(0, 7):
+            error_code, temp_pos = vrep.simxGetJointPosition(self.clientID, self.joint_array[x],
+                                                             vrep.simx_opmode_buffer)
+            start_position.append(temp_pos)
+            error_code = vrep.simxSetJointTargetPosition(self.clientID, self.joint_array[x],
+                                                         start_position[x] + action[x], vrep.simx_opmode_oneshot_wait)
 
     def calc_distance(self):
 
@@ -166,5 +181,3 @@ class VrepSim(object):
 
         time.sleep(1)
 
-
-sim = VrepSim()

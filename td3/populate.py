@@ -19,11 +19,12 @@ def populate_buffer(sim, replay_buffer):
             replay_buffer.add(test[0], test[1], test[2], test[3], test[4])
             buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
             replay_counter += 1
+            print(replay_counter)
     except EOFError:
         pass
 
     buffer = cons.BUFFER_SIZE - replay_counter
-    print('Buffer, size {} loaded'.format(replay_counter))
+    print('Buffer, size {} loaded from previous session'.format(buffer))
 
     distance = 0
     for x in range(buffer):
@@ -63,12 +64,13 @@ def populate_buffer(sim, replay_buffer):
             sim.reset_sim()
 
         if x % 25 == 0:
-            save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "wb")
+            save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "ab")
             pickle.dump(buffer_storage, save_buffer)
             save_buffer.close()
-        if x % 1000 == 0:
+            buffer_storage = []
+            sim.reset_sim()  # reset simulation after 25 movements
+        if x % 100 == 0:
             print("{} of {} loaded".format(x, cons.BUFFER_SIZE))
-            sim.reset_sim()
 
     print("\nExperience replay buffer initialized.")
 

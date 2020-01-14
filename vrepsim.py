@@ -112,7 +112,7 @@ class VrepSim(object):
             new_position.append(temp_pos + action[x])
             vrep.simxSetJointTargetPosition(self.clientID, self.joint_array[x], new_position[x],
                                             vrep.simx_opmode_oneshot_wait)
-        time.sleep(1)
+        # time.sleep(0.1)
 
     def calc_distance(self):
 

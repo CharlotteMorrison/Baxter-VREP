@@ -11,20 +11,23 @@ def populate_buffer(sim, replay_buffer):
     # store and load the initial replay values
     # once replay buffer is full, use the pre-made one to populate observe step
     replay_counter = 0
-    try:
-        pk_file = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "rb")
-        data = pickle.load(pk_file)
 
-        for test in data:
-            replay_buffer.add(test[0], test[1], test[2], test[3], test[4])
-            buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
-            replay_counter += 1
-            print(replay_counter)
-    except EOFError:
-        pass
-
+    with open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "rb") as pk_file:
+        while True:
+            try:
+                data = pickle.load(pk_file)
+                for test in data:
+                    replay_buffer.add(test[0], test[1], test[2], test[3], test[4])
+                    buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
+                    replay_counter += 1
+            except EOFError:
+                print('Reached end of file.')
+                break
+            except pickle.UnpicklingError:
+                print('Incomplete record {} was ignored.'.format(replay_counter + 1))
+                break
     buffer = cons.BUFFER_SIZE - replay_counter
-    print('Buffer, size {} loaded from previous session'.format(buffer))
+    print('Buffer size {}/{} loaded from previous session'.format(buffer, cons.BUFFER_SIZE))
 
     distance = 0
     for x in range(buffer):
@@ -57,7 +60,7 @@ def populate_buffer(sim, replay_buffer):
         distance = new_distance
         replay_buffer.add(state, action, reward, next_state, done)
 
-        # save the observations, for testing , remove later after testing
+        # TODO save the observations, for testing , remove later after testing
         buffer_storage.append([state, action, reward, next_state, done])
 
         if done:

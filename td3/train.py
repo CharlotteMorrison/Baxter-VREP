@@ -66,11 +66,12 @@ def train(agent, sim, replay_buffer):
 
             # new_state, stacked_frames = stack_frames(stacked_frames, new_state, False, cons.NUM_FRAMES_STACKED)
             video_array.append(sim.get_input_image())
-
+            # TODO create a more robust reward, move to function and apply to this and populate
+            # TODO limit the number of steps in episode somewhere between 25 (used in populate) and 50.
             # determine reward after movement
             if new_distance > distance:
                 reward = -1
-                index += 1
+                index += 1  # tracks the number of 'bad' moves, if too many bad moves, reset.
             elif new_distance == distance:
                 reward = 0
                 index = 0
@@ -80,7 +81,7 @@ def train(agent, sim, replay_buffer):
 
             # check for collision state/ if done
 
-            # todo update for multi-arm
+            # TODO update for multi-arm
             right_arm_collision_state = sim.get_collision_state()
 
             if new_distance < cons.SOLVED_DISTANCE:

@@ -1,4 +1,4 @@
-import copy
+from utils import plot_loss
 import td3.constants as cons
 from td3.actor import Actor
 from td3.critic import Critic
@@ -28,6 +28,8 @@ class TD3(object):
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)  # or 1e-3
 
         self.total_it = 0
+        self.critic_loss_plot = []
+        self.actor_loss_plot = []
 
     def select_action(self, state, noise=0.1):
         """Select an appropriate action from the agent policy
@@ -57,7 +59,7 @@ class TD3(object):
         """
         for it in range(iterations):
             # Sample replay buffer (top priority, bottom, regular
-            state,  action, reward, next_state, done, _, _ = replay_buffer.sample(cons.BATCH_SIZE, beta=0.5)
+            state, action, reward, next_state, done, _, _ = replay_buffer.sample(cons.BATCH_SIZE, beta=0.5)
 
             # state, action, reward, next_state, done = replay_buffer.sample(cons.BATCH_SIZE)
             count, x, y = state.shape
@@ -66,42 +68,50 @@ class TD3(object):
             count, x, y = next_state.shape
             next_state = torch.from_numpy(np.reshape(next_state, (count, x * y))).float().to(cons.DEVICE)
 
+            action = torch.from_numpy(action).to(cons.DEVICE)
+
             reward = torch.as_tensor(reward, dtype=torch.float32).to(cons.DEVICE)
             done = torch.as_tensor(done, dtype=torch.float32).to(cons.DEVICE)
 
             with torch.no_grad():
                 # select an action according to the policy an add clipped noise
                 # need to select set of actions
+                noise = (torch.rand_like(action) *
+                         cons.POLICY_NOISE).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
 
-                noise = (torch.rand_like(torch.from_numpy(action)) *
-                         cons.POLICY_NOISE).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP).to(cons.DEVICE)
+                # noise = (torch.rand_like(torch.from_numpy(action)) *
+                #          cons.POLICY_NOISE).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP).to(cons.DEVICE)
 
-                next_action = torch.max(torch.min((self.actor_target(next_state.clone().detach()) +
-                                                   noise.clone().detach()),
-                                                  cons.MAX_ACTION), cons.MIN_ACTION).to(cons.DEVICE)
+                # next_action = torch.max(torch.min((self.actor_target(next_state) + noise),
+                #                                   cons.MAX_ACTION), cons.MIN_ACTION).to(cons.DEVICE)
+
+                next_action = torch.reshape(torch.clamp((self.actor_target(next_state) + noise).flatten(), -1, 1),
+                                            (100, 7))
 
                 # Compute the target Q value
                 target_q1, target_q2 = self.critic(state.float(), next_action.float())
                 target_q = torch.min(target_q1, target_q2)
-                target_q = reward + done * cons.GAMMA * target_q
+
+                target_q = reward + (done * cons.GAMMA * target_q).detach()
 
             # update action datatype, can't do earlier, use np.array earlier
-            action = torch.as_tensor(action, dtype=torch.float32).to(cons.DEVICE)
+            # action = torch.as_tensor(action, dtype=torch.float32).to(cons.DEVICE)
 
             # get current Q estimates
-            current_q1, q = self.critic(state, action)
+            current_q1, current_q2 = self.critic(state, action)
 
             # compute critic loss
             critic_loss = F.mse_loss(current_q1,
-                                     target_q[:1, :].transpose(0, 1)) + F.mse_loss(q, target_q[:1, :].transpose(0, 1))
-
+                                     target_q[:1, :].transpose(0, 1)) + F.mse_loss(current_q2,
+                                                                                   target_q[:1, :].transpose(0, 1))
             # optimize the critic
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_optimizer.step()
 
+            self.critic_loss_plot.append(critic_loss.item())
             # delayed policy updates
-            if self.total_it % cons.POLICY_FREQ == 0:
+            if self.total_it % cons.POLICY_FREQ == 0:  # update the actor policy less frequently
                 # compute the actor loss
                 actor_loss = -self.critic.get_q(state, self.actor(state).float()).mean()
 
@@ -109,6 +119,8 @@ class TD3(object):
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()
                 self.actor_optimizer.step()
+
+                self.actor_loss_plot.append(actor_loss.item())
 
                 # Update the frozen target models
                 for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):

@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 
 # flags
 set_seed = True
@@ -17,7 +16,7 @@ VIDEO_INTERVAL = 10  # change to 1 to record all videos
 NUM_FRAMES_STACKED = 4
 SOLVED_DISTANCE = 0.12
 WRITE_TO_FILE = True
-REPORT_INTERVAL = 10
+REPORT_INTERVAL = 1
 SIZE = (512, 512)
 
 

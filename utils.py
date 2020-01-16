@@ -61,3 +61,15 @@ def plot_results(rewards_total_episode, plot_name):
     plt.plot(rewards_total_episode, alpha=0.6, color='red')
     plt.savefig(plot_name)
     plt.close()
+
+
+def plot_loss(actor_loss, critic_loss, plot_name):
+    plt.figure(figsize=(12, 5))
+    plt.title("Loss Per Episode")
+    plt.ylim(top=1000)
+    plt.xlabel('Episode Number')
+    plt.ylabel('Average Loss Per Episode')
+    plt.plot(actor_loss, alpha=0.6, color='blue')
+    plt.plot(critic_loss, alpha=0.6, color='green')
+    plt.savefig(plot_name)
+    plt.close()

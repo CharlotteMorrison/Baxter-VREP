@@ -1,6 +1,7 @@
 import random
 import sys
 import pickle
+import torch
 import td3.constants as cons
 
 
@@ -17,7 +18,7 @@ def populate_buffer(sim, replay_buffer):
             try:
                 data = pickle.load(pk_file)
                 for test in data:
-                    replay_buffer.add(test[0], test[1], test[2], test[3], test[4])
+                    replay_buffer.add(test[0], torch.tensor(test[1], dtype=torch.float32), test[2], test[3], test[4])
                     buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
                     replay_counter += 1
             except EOFError:
@@ -26,8 +27,13 @@ def populate_buffer(sim, replay_buffer):
             except pickle.UnpicklingError:
                 print('Incomplete record {} was ignored.'.format(replay_counter + 1))
                 break
+
+    # save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "wb")
+    # pickle.dump(buffer_storage, save_buffer)
+    # save_buffer.close()
+    buffer_storage = []
     buffer = cons.BUFFER_SIZE - replay_counter
-    print('Buffer size {}/{} loaded from previous session'.format(buffer, cons.BUFFER_SIZE))
+    print('Buffer size {}/{} loaded from previous session'.format(replay_counter, cons.BUFFER_SIZE))
 
     distance = 0
     for x in range(buffer):
@@ -58,7 +64,7 @@ def populate_buffer(sim, replay_buffer):
             done = False
 
         distance = new_distance
-        replay_buffer.add(state, action, reward, next_state, done)
+        replay_buffer.add(state, torch.tensor(action, dtype=torch.float32), reward, next_state, done)
 
         # TODO save the observations, for testing , remove later after testing
         buffer_storage.append([state, action, reward, next_state, done])
@@ -72,8 +78,10 @@ def populate_buffer(sim, replay_buffer):
             save_buffer.close()
             buffer_storage = []
             sim.reset_sim()  # reset simulation after 25 movements
+        # TODO this adds extra at the end... ie last group has 16, it adds 100, fix to make correct at end
         if x % 100 == 0:
-            print("{} of {} loaded".format(x, cons.BUFFER_SIZE))
+            replay_counter += 100
+            print("{} of {} loaded".format(replay_counter, cons.BUFFER_SIZE))
 
     print("\nExperience replay buffer initialized.")
 

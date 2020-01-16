@@ -4,6 +4,10 @@ from utils import output_video, plot_results
 # from utils import stack_frames
 import time
 import psutil
+# for code performance profiling
+# import cProfile
+# import pstats
+from utils import plot_loss
 
 
 def train(agent, sim, replay_buffer):
@@ -13,11 +17,14 @@ def train(agent, sim, replay_buffer):
             :param sim: (robot environment) vrep simulation
             :param agent: (Agent) agent to use, TD3 Algorithm
     """
+    # profile = cProfile.Profile()
     arm = 'right'  # replace later with parameter, or etc. for dual arms
     total_timesteps = 0
 
     rewards_total_frame = []
     rewards_total_episode = []
+    actor_loss_episode = []
+    critic_loss_episode = []
     # stacked_frames = 0
     episode = 0
     start_time = time.time()
@@ -38,10 +45,12 @@ def train(agent, sim, replay_buffer):
         print('Timesteps: {}/{}.'.format(total_timesteps, cons.EXPLORATION))
         episode += 1
         state = sim.get_input_image()
+
         # state, stacked_frames = stack_frames(stacked_frames, state, True, cons.NUM_FRAMES_STACKED)
         score = []
         video_array = []
         distance = sim.calc_distance()
+
         solved = False
         index = 0  # track the number of bad moves made.
 
@@ -50,7 +59,7 @@ def train(agent, sim, replay_buffer):
         else:
             video_record = False
         video_array.append(sim.get_video_image())
-
+        temp_steps = 0  # tracks the number of tries- if above 30, is done, reset.
         while True:
             total_timesteps += 1
 
@@ -63,22 +72,22 @@ def train(agent, sim, replay_buffer):
 
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()
-
+            # print('Distance: {}'.format(distance))
             # new_state, stacked_frames = stack_frames(stacked_frames, new_state, False, cons.NUM_FRAMES_STACKED)
             video_array.append(sim.get_input_image())
             # TODO create a more robust reward, move to function and apply to this and populate
             # TODO limit the number of steps in episode somewhere between 25 (used in populate) and 50.
             # determine reward after movement
+
             if new_distance > distance:
                 reward = -1
-                index += 1  # tracks the number of 'bad' moves, if too many bad moves, reset.
+                index += 1  # tracks the number of 'bad' moves, if too many bad moves in a row, reset.
             elif new_distance == distance:
                 reward = 0
                 index = 0
             else:
                 reward = 1
-                index = 0
-
+                index = 0  # if it makes a good move, then reset the count
             # check for collision state/ if done
 
             # TODO update for multi-arm
@@ -90,22 +99,33 @@ def train(agent, sim, replay_buffer):
             elif right_arm_collision_state:
                 solved = False
                 done = True
+                reward = -1
             else:
                 done = False
 
-            if index >= 3:
+            if index >= 7:
                 done = True
 
             score.append(reward)
 
             replay_buffer.add(state, action, reward, new_state, done)
-            agent.train(replay_buffer, cons.BATCH_SIZE)
 
+            # profile.enable()
+            agent.train(replay_buffer, cons.BATCH_SIZE)
+            # profile.disable()
+            # ps = pstats.Stats(profile)
+            # ps.sort_stats('cumtime')
+            # ps.print_stats()
             state = new_state
             distance = new_distance
 
             if solved:
                 print('Solved on Episode: {}'.format(episode))
+
+            temp_steps += 1
+            if temp_steps == 30:
+                done = True  # stop after 30 attempts, was getting stuck flipping from bad to good.
+                temp_steps = 0
 
             system_info = psutil.virtual_memory()
 
@@ -138,6 +158,13 @@ def train(agent, sim, replay_buffer):
                 mean_reward_interval = sum(rewards_total_episode[-cons.REPORT_INTERVAL:]) / cons.REPORT_INTERVAL
                 mean_reward_all = round(sum(rewards_total_episode) / len(rewards_total_episode), 2)
 
+                # add in loss values
+                actor_loss_episode.append(sum(agent.actor_loss_plot) / len(agent.actor_loss_plot))
+                critic_loss_episode.append(sum(agent.critic_loss_plot) / len(agent.critic_loss_plot))
+                # reset the agent lists
+                agent.actor_loss_plot = []
+                agent.critic_loss_plot = []
+
                 elapsed_time = time.time() - start_time
 
                 if video_record:
@@ -167,6 +194,7 @@ def train(agent, sim, replay_buffer):
 
                 if episode % cons.REPORT_INTERVAL == 0 and episode > 0:
                     plot_results(rewards_total_episode, cons.PLOT_NAME)
+                    plot_loss(actor_loss_episode, critic_loss_episode, 'td3/results/plots/Baxter_TD3_loss_plot.png')
 
                     print("\n*** Episode " + str(episode) + " ***")
                     print("Avg_Reward [last " + str(cons.REPORT_INTERVAL) + "]: " + str(
@@ -185,3 +213,4 @@ def train(agent, sim, replay_buffer):
             break
 
     plot_results(rewards_total_episode, cons.PLOT_NAME)
+    plot_loss(actor_loss_episode, critic_loss_episode, 'td3/results/plots/Baxter_TD3_loss_plot.png')

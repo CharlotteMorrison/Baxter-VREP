@@ -13,7 +13,7 @@ def populate_buffer(sim, replay_buffer):
     # once replay buffer is full, use the pre-made one to populate observe step
     replay_counter = 0
 
-    with open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "rb") as pk_file:
+    with open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "rb") as pk_file:
         while True:
             try:
                 data = pickle.load(pk_file)
@@ -28,9 +28,9 @@ def populate_buffer(sim, replay_buffer):
                 print('Incomplete record {} was ignored.'.format(replay_counter + 1))
                 break
 
-    # save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "wb")
-    # pickle.dump(buffer_storage, save_buffer)
-    # save_buffer.close()
+    save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "wb")
+    pickle.dump(buffer_storage, save_buffer)
+    save_buffer.close()
     buffer_storage = []
     buffer = cons.BUFFER_SIZE - replay_counter
     print('Buffer size {}/{} loaded from previous session'.format(replay_counter, cons.BUFFER_SIZE))
@@ -48,12 +48,15 @@ def populate_buffer(sim, replay_buffer):
         sim.step_right(action)
         next_state = sim.get_input_image()
         new_distance = sim.calc_distance()
-        if new_distance > distance:
-            reward = -1
-        elif new_distance == distance:
-            reward = 0
-        else:
-            reward = 1
+
+        reward = distance - new_distance
+        print('reward: {}'.format(reward))
+        # if new_distance > distance:
+        #     reward = -1
+        # elif new_distance == distance:
+        #     reward = 0
+        # else:
+        #     reward = 1
         right_arm_collision_state = sim.get_collision_state()
 
         if new_distance < cons.SOLVED_DISTANCE:
@@ -73,7 +76,7 @@ def populate_buffer(sim, replay_buffer):
             sim.reset_sim()
 
         if x % 25 == 0:
-            save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer.pkl", "ab")
+            save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "ab")
             pickle.dump(buffer_storage, save_buffer)
             save_buffer.close()
             buffer_storage = []

@@ -79,15 +79,25 @@ def train(agent, sim, replay_buffer):
             # TODO limit the number of steps in episode somewhere between 25 (used in populate) and 50.
             # determine reward after movement
 
+            # Richards implementation- using defined rewards
+
+            # if new_distance > distance:
+            #     reward = -1
+            #     index += 1  # tracks the number of 'bad' moves, if too many bad moves in a row, reset.
+            # elif new_distance == distance:
+            #     reward = 0
+            #     index = 0
+            # else:
+            #    reward = 1
+            #    index = 0  # if it makes a good move, then reset the count
+
+            # try using pure distance for reward
+            reward = distance - new_distance
             if new_distance > distance:
-                reward = -1
-                index += 1  # tracks the number of 'bad' moves, if too many bad moves in a row, reset.
-            elif new_distance == distance:
-                reward = 0
-                index = 0
+                index += 1
             else:
-                reward = 1
-                index = 0  # if it makes a good move, then reset the count
+                index = 0
+
             # check for collision state/ if done
 
             # TODO update for multi-arm

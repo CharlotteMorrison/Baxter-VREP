@@ -1,7 +1,6 @@
 import random
 import numpy as np
 import td3.constants as cons
-import torch
 
 
 class ReplayBuffer(object):

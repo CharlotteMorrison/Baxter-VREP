@@ -183,5 +183,5 @@ class VrepSim(object):
             vrep.simxSetJointTargetPosition(self.clientID, self.joint_array[x], self.joint_org_position[x],
                                             vrep.simx_opmode_oneshot_wait)
 
-        time.sleep(1)
+        time.sleep(0)
 

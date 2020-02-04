@@ -21,5 +21,5 @@ class Actor(nn.Module):
         x = F.relu(self.layer2(x))
         # tanh is the hyperbolic tangent function that keeps the network from getting stuck
         # like the sigmoid function
-        x = self.max_action.to(cons.DEVICE) * torch.tanh(self.layer3(x))
+        x = self.max_action * torch.tanh(self.layer3(x))
         return x

@@ -35,16 +35,18 @@ POLICY_FREQ = 2
 
 # environment parameters
 STATE_DIM = torch.empty(84, 84)
-MAX_ACTION = torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], dtype=torch.double).to(DEVICE)
-MIN_ACTION = torch.tensor([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1], dtype=torch.double).to(DEVICE)
-ACTION_DIM = torch.tensor([[-0.1, 0, 0.1], [-0.1, 0, 0.1], [-0.1, 0, 0.1], [-0.1, 0, 0.1], [-0.1, 0, 0.1],
-                          [-0.1, 0, 0.1], [-0.1, 0., 0.1]]).to(DEVICE)
+MAX_ACTION = 0.1
+MIN_ACTION = -0.1
+ACTION_DIM = 7
+
+# MAX_ACTION = torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], dtype=torch.double).to(DEVICE)
+# MIN_ACTION = torch.tensor([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1], dtype=torch.double).to(DEVICE)
+# ACTION_DIM = torch.tensor([[-0.1, 0, 0.1], [-0.1, 0, 0.1], [-0.1, 0, 0.1], [-0.1, 0, 0.1], [-0.1, 0, 0.1],
+#                           [-0.1, 0, 0.1], [-0.1, 0., 0.1]]).to(DEVICE)
 
 # low = np.array([-1.7016, -2.147, -3.0541, -.05, -3.059, -1.5707, -3.059])
 # high = np.array([1.7016, 1.047, 3.0541, 2.618, 3.059, 2.094, 3.059])
 # state_dim = [low, high]
-
-# global values
 
 
 

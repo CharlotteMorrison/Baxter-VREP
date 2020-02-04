@@ -3,6 +3,7 @@ import sys
 import pickle
 import torch
 import td3.constants as cons
+from utils import d_hash
 
 
 def populate_buffer(sim, replay_buffer):
@@ -18,7 +19,9 @@ def populate_buffer(sim, replay_buffer):
             try:
                 data = pickle.load(pk_file)
                 for test in data:
-                    replay_buffer.add(test[0], torch.tensor(test[1], dtype=torch.float32), test[2], test[3], test[4])
+                    # added the d_hash in here on load.
+                    replay_buffer.add(d_hash(test[0]), torch.tensor(test[1], dtype=torch.float32), test[2],
+                                      d_hash(test[3]), test[4])
                     buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
                     replay_counter += 1
             except EOFError:
@@ -27,10 +30,10 @@ def populate_buffer(sim, replay_buffer):
             except pickle.UnpicklingError:
                 print('Incomplete record {} was ignored.'.format(replay_counter + 1))
                 break
-
-    save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "wb")
-    pickle.dump(buffer_storage, save_buffer)
-    save_buffer.close()
+    # uncomment to update the whole stored replay
+    # save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "wb")
+    # pickle.dump(buffer_storage, save_buffer)
+    # save_buffer.close()
     buffer_storage = []
     buffer = cons.BUFFER_SIZE - replay_counter
     print('Buffer size {}/{} loaded from previous session'.format(replay_counter, cons.BUFFER_SIZE))
@@ -50,13 +53,8 @@ def populate_buffer(sim, replay_buffer):
         new_distance = sim.calc_distance()
 
         reward = distance - new_distance
-        print('reward: {}'.format(reward))
-        # if new_distance > distance:
-        #     reward = -1
-        # elif new_distance == distance:
-        #     reward = 0
-        # else:
-        #     reward = 1
+        # print('reward: {}'.format(reward))
+
         right_arm_collision_state = sim.get_collision_state()
 
         if new_distance < cons.SOLVED_DISTANCE:
@@ -67,7 +65,8 @@ def populate_buffer(sim, replay_buffer):
             done = False
 
         distance = new_distance
-        replay_buffer.add(state, torch.tensor(action, dtype=torch.float32), reward, next_state, done)
+        replay_buffer.add(d_hash(state), torch.tensor(action, dtype=torch.float32), reward,
+                          d_hash(next_state), done)
 
         # TODO save the observations, for testing , remove later after testing
         buffer_storage.append([state, action, reward, next_state, done])

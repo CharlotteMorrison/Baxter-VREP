@@ -64,12 +64,33 @@ def plot_results(rewards_total_episode, plot_name):
 
 
 def plot_loss(actor_loss, critic_loss, plot_name):
+    print('*********************LOSS UPDATED***********************')
     plt.figure(figsize=(12, 5))
     plt.title("Loss Per Episode")
-    plt.ylim(top=1000)
+    plt.ylim(top=3)
     plt.xlabel('Episode Number')
     plt.ylabel('Average Loss Per Episode')
     plt.plot(actor_loss, alpha=0.6, color='blue')
     plt.plot(critic_loss, alpha=0.6, color='green')
     plt.savefig(plot_name)
     plt.close()
+
+# dHash: distance based hashing, used for feature reduction
+# Hashes of similar images are close in numerical value.
+# from: pyimagesearch.com/2017/11/27/image-hashing-opencv-python
+
+
+def d_hash(image, hash_size=8):
+    # convert the image to black and white
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # resize the input image adding a single column (width)
+    # so the horizontal gradient can be computed
+    resized = cv2.resize(image, (hash_size + 1, hash_size))
+
+    # compute the relative horizontal gradient between
+    # adjacent column pixels
+    diff = resized[:, 1:] > resized[:, :-1]
+
+    img_hash = sum([2 ** i for (i, v) in enumerate(diff.flatten()) if v])
+    return np.asarray([int(x) for x in str(img_hash)]).astype(float)

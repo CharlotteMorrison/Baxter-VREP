@@ -185,3 +185,13 @@ class VrepSim(object):
         # TODO put back to 1
         time.sleep(0)
 
+    def full_sim_reset(self):
+        vrep.simxStopSimulation(self.clientID, vrep.simx_opmode_blocking)
+        is_running = True
+        while is_running:
+            error_code, ping_time = vrep.simxGetPingTime(self.clientID)
+            error_code, server_state = vrep.simxGetInMessageInfo(self.clientID, vrep.simx_headeroffset_server_state)
+            if server_state == 0:
+                is_running = False
+
+        vrep.simxStartSimulation(self.clientID, vrep.simx_opmode_blocking)

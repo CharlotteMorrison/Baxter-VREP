@@ -1,4 +1,4 @@
-from utils import d_hash
+
 import td3.constants as cons
 from td3.actor import Actor
 from td3.critic import Critic
@@ -13,8 +13,7 @@ class TD3(object):
     """
 
     def __init__(self):
-        # state_dim = cons.STATE_DIM.flatten().shape[0]
-        state_dim = 19  # using image hashing
+        state_dim = cons.STATE_DIM.flatten().shape[0]
         action_dim = cons.ACTION_DIM
         self.actor = Actor(state_dim, action_dim, cons.MAX_ACTION).to(cons.DEVICE)
         # self.actor_target = copy.deepcopy(self.actor).float()
@@ -40,8 +39,8 @@ class TD3(object):
             Returns:
                 action (float): action clipped within action range
         """
-        state = torch.from_numpy(state).to(cons.DEVICE)
-        # state = torch.FloatTensor(state.reshape(1, -1)).to(cons.DEVICE)
+
+        state = torch.FloatTensor(state.reshape(1, -1)).to(cons.DEVICE)
         action = self.actor(state).cpu().data.numpy().flatten()
 
         if noise != 0:
@@ -63,17 +62,12 @@ class TD3(object):
         for it in range(iterations):
             # Sample replay buffer (top priority, bottom, regular
             state, action, reward, next_state, done, _, _ = replay_buffer.sample(cons.BATCH_SIZE, beta=0.5)
-            if state.dtype == 'object':
-                with np.printoptions(threshold=np.inf):
-                    print(state)
-            state = torch.from_numpy(state).float().to(cons.DEVICE)
-            next_state = torch.from_numpy(next_state).float().to(cons.DEVICE)
 
-            # count, x, y = state.shape
-            # state = torch.from_numpy(np.reshape(state, (count, x * y))).float().to(cons.DEVICE)
+            count, x, y = state.shape
+            state = torch.from_numpy(np.reshape(state, (count, x * y))).float().to(cons.DEVICE)
 
-            # count, x, y = next_state.shape
-            # next_state = torch.from_numpy(np.reshape(next_state, (count, x * y))).float().to(cons.DEVICE)
+            count, x, y = next_state.shape
+            next_state = torch.from_numpy(np.reshape(next_state, (count, x * y))).float().to(cons.DEVICE)
 
             action = torch.from_numpy(action).to(cons.DEVICE)
 

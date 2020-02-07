@@ -3,7 +3,6 @@ import sys
 import pickle
 import torch
 import td3.constants as cons
-from utils import d_hash
 
 
 def populate_buffer(sim, replay_buffer):
@@ -20,8 +19,8 @@ def populate_buffer(sim, replay_buffer):
                 data = pickle.load(pk_file)
                 for test in data:
                     # added the d_hash in here on load.
-                    replay_buffer.add(d_hash(test[0]), torch.tensor(test[1], dtype=torch.float32), test[2],
-                                      d_hash(test[3]), test[4])
+                    replay_buffer.add(test[0], torch.tensor(test[1], dtype=torch.float32), test[2],
+                                      test[3], test[4])
                     buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
                     replay_counter += 1
             except EOFError:
@@ -65,8 +64,8 @@ def populate_buffer(sim, replay_buffer):
             done = False
 
         distance = new_distance
-        replay_buffer.add(d_hash(state), torch.tensor(action, dtype=torch.float32), reward,
-                          d_hash(next_state), done)
+        replay_buffer.add(state, torch.tensor(action, dtype=torch.float32), reward,
+                          next_state, done)
 
         # TODO save the observations, for testing , remove later after testing
         buffer_storage.append([state, action, reward, next_state, done])

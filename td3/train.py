@@ -1,13 +1,15 @@
 import numpy as np
 import td3.constants as cons
-from utils import output_video, plot_results, d_hash
+from utils import output_video, plot_results
 # from utils import stack_frames
 import time
 import psutil
+from utils import plot_loss
+# --------------------------------
 # for code performance profiling
 # import cProfile
 # import pstats
-from utils import plot_loss
+# --------------------------------
 
 
 def train(agent, sim, replay_buffer):
@@ -45,7 +47,6 @@ def train(agent, sim, replay_buffer):
         print('Timesteps: {}/{}.'.format(total_timesteps, cons.EXPLORATION))
         episode += 1
         state = sim.get_input_image()
-        state = d_hash(state)
 
         # state, stacked_frames = stack_frames(stacked_frames, state, True, cons.NUM_FRAMES_STACKED)
         score = []
@@ -73,7 +74,7 @@ def train(agent, sim, replay_buffer):
 
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()
-            new_state = d_hash(new_state)
+
             # print('Distance: {}'.format(distance))
             # new_state, stacked_frames = stack_frames(stacked_frames, new_state, False, cons.NUM_FRAMES_STACKED)
             video_array.append(sim.get_input_image())
@@ -216,7 +217,10 @@ def train(agent, sim, replay_buffer):
                     print("Elapsed Time: ", time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
                     print("Memory Usage: " + str(system_info.percent) + "%")
 
-                sim.reset_sim()
+                if right_arm_collision_state:
+                    sim.full_sim_reset()
+                else:
+                    sim.reset_sim()
                 break
 
         system_info = psutil.virtual_memory()

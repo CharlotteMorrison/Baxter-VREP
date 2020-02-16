@@ -31,24 +31,35 @@ class TD3(object):
         self.critic_loss_plot = []
         self.actor_loss_plot = []
 
-    def select_action(self, state, noise=0.1):
+    def select_action(self, state, noise=0.02):
         """Select an appropriate action from the agent policy
             Args:
                 state (array): current state of environment
                 noise (float): how much noise to add to actions
             Returns:
-                action (float): action clipped within action range
+                action (list): nn action results
+                movement (list): movements mapped to actions for robot
+
         """
 
-        state = torch.FloatTensor(state.reshape(1, -1)).to(cons.DEVICE)
-        action = self.actor(state).cpu().data.numpy().flatten()
+        state = torch.FloatTensor(state).to(cons.DEVICE).unsqueeze(0).unsqueeze(0)
+        action = self.actor(state)
+        movement = self.convert_action(action)
 
-        if noise != 0:
-            action = (action + np.random.normal(0, noise, size=7))
-            action = torch.from_numpy(action).to(cons.DEVICE)
+        policy_noise = (torch.randn_like(movement) * noise).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
+        movement = torch.add(movement, policy_noise)
 
-        # return torch.max(torch.min(action, cons.MAX_ACTION), cons.MIN_ACTION).float()
-        return torch.clamp(action, cons.MIN_ACTION, cons.MAX_ACTION)
+        return action, torch.clamp(movement, cons.MIN_ACTION, cons.MAX_ACTION).float()
+
+    def convert_action(self, action):
+        """ reshape torch.Size([1, 21]) to torch.Size([3, 7)] and map values to movements
+            :param action: torch
+            :return: torch
+        """
+        action = torch.reshape(action, (3, 7))
+        _, index = action.max(0)
+        index = torch.sub(index, 1) * .1
+        return index
 
     def train(self, replay_buffer, iterations):
         """Train and update actor and critic networks
@@ -60,43 +71,32 @@ class TD3(object):
                 critic_loss (float): loss from critic network
         """
         for it in range(iterations):
-            # Sample replay buffer (top priority, bottom, regular
+            # Sample replay buffer (priority replay)
             state, action, reward, next_state, done, _, _ = replay_buffer.sample(cons.BATCH_SIZE, beta=0.5)
 
-            count, x, y = state.shape
-            state = torch.from_numpy(np.reshape(state, (count, x * y))).float().to(cons.DEVICE)
-
-            count, x, y = next_state.shape
-            next_state = torch.from_numpy(np.reshape(next_state, (count, x * y))).float().to(cons.DEVICE)
-
-            action = torch.from_numpy(action).to(cons.DEVICE)
-
-            reward = torch.as_tensor(reward, dtype=torch.float32).to(cons.DEVICE)
-            done = torch.as_tensor(done, dtype=torch.float32).to(cons.DEVICE)
+            state = torch.from_numpy(state).float().to(cons.DEVICE)                 # torch.Size([100, 84, 84])
+            next_state = torch.from_numpy(next_state).float().to(cons.DEVICE)       # torch.Size([100, 84, 84])
+            action = torch.from_numpy(action).to(cons.DEVICE)                       # torch.Size([100, 21])
+            reward = torch.as_tensor(reward, dtype=torch.float32).to(cons.DEVICE)   # torch.Size([100])
+            done = torch.as_tensor(done, dtype=torch.float32).to(cons.DEVICE)       # torch.Size([100])
 
             with torch.no_grad():
-                # select an action according to the policy an add clipped noise
+                # select an action according to the policy and add clipped noise
                 # need to select set of actions
-                noise = (torch.rand_like(action) *
+
+                # next_action = torch.reshape(torch.clamp((self.actor_target(next_state.unsqueeze(1))
+                #                             + noise).flatten(), -1, 1), (100, 7))
+
+                next_action = self.actor_target(next_state.unsqueeze(1))
+                noise = (torch.rand_like(next_action) *
                          cons.POLICY_NOISE).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
-
-                # noise = (torch.rand_like(torch.from_numpy(action)) *
-                #          cons.POLICY_NOISE).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP).to(cons.DEVICE)
-
-                # next_action = torch.max(torch.min((self.actor_target(next_state) + noise),
-                #                                   cons.MAX_ACTION), cons.MIN_ACTION).to(cons.DEVICE)
-
-                next_action = torch.reshape(torch.clamp((self.actor_target(next_state) + noise).flatten(), -1, 1),
-                                            (100, 7))
+                next_action = torch.reshape(torch.clamp((next_action + noise).flatten(), -1, 1), (100, 21))
 
                 # Compute the target Q value
                 target_q1, target_q2 = self.critic(state.float(), next_action.float())
                 target_q = torch.min(target_q1, target_q2)
 
                 target_q = reward + (done * cons.GAMMA * target_q).detach()
-
-            # update action datatype, can't do earlier, use np.array earlier
-            # action = torch.as_tensor(action, dtype=torch.float32).to(cons.DEVICE)
 
             # get current Q estimates
             current_q1, current_q2 = self.critic(state.float(), action.float())
@@ -114,8 +114,12 @@ class TD3(object):
             self.critic_loss_plot.append(critic_loss.item())
             # delayed policy updates
             if self.total_it % cons.POLICY_FREQ == 0:  # update the actor policy less frequently
+
                 # compute the actor loss
-                actor_loss = -self.critic.get_q(state, self.actor(state).float()).mean()
+                q_action = self.actor(state.unsqueeze(1)).float()
+
+                # actor_loss = -self.critic.get_q(state, self.actor(state.unsqueeze(1)).float()).mean()
+                actor_loss = -self.critic.get_q(state, q_action).mean()
 
                 # optimize the actor
                 self.actor_optimizer.zero_grad()

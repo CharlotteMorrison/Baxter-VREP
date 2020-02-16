@@ -46,7 +46,6 @@ class Runner:
 
         # todo get new state, reward, done
 
-
         if episode_timesteps + 1 == self.observation_steps:
             done_bool = 0
             done = True

@@ -18,9 +18,19 @@ def populate_buffer(sim, replay_buffer):
             try:
                 data = pickle.load(pk_file)
                 for test in data:
-                    # added the d_hash in here on load.
-                    replay_buffer.add(test[0], torch.tensor(test[1], dtype=torch.float32), test[2],
-                                      test[3], test[4])
+                    # add the 21 action space here-use the values stored to determine where to put zeros and .1s
+                    actions = []
+                    for d in test[1]:
+                        if d == -.1:
+                            actions.append([.1, .0, .0])
+                        if d == .0:
+                            actions.append([.0, .1, .0])
+                        if d == .1:
+                            actions.append([.0, .0, .1])
+                    # puts the actions in correct order- so they match with the rest of the program when reshaped
+                    actions = torch.tensor(actions, dtype=torch.float32).flatten().reshape((7, 3)).t().flatten()
+                    replay_buffer.add(test[0], actions, test[2], test[3], test[4])
+                    # replay_buffer.add(test[0], torch.tensor(test[1], dtype=torch.float32), test[2], test[3], test[4])
                     buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
                     replay_counter += 1
             except EOFError:

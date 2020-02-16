@@ -183,7 +183,7 @@ class VrepSim(object):
             vrep.simxSetJointTargetPosition(self.clientID, self.joint_array[x], self.joint_org_position[x],
                                             vrep.simx_opmode_oneshot_wait)
         # TODO put back to 1
-        time.sleep(0)
+        time.sleep(1)
 
     def full_sim_reset(self):
         vrep.simxStopSimulation(self.clientID, vrep.simx_opmode_blocking)

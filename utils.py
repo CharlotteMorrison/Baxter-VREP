@@ -64,7 +64,6 @@ def plot_results(rewards_total_episode, plot_name):
 
 
 def plot_loss(actor_loss, critic_loss, plot_name):
-    print('*********************LOSS UPDATED***********************')
     plt.figure(figsize=(12, 5))
     plt.title("Loss Per Episode")
     plt.ylim(top=3)

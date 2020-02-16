@@ -37,7 +37,7 @@ POLICY_FREQ = 2
 STATE_DIM = torch.empty(84, 84)
 MAX_ACTION = 0.1
 MIN_ACTION = -0.1
-ACTION_DIM = 7
+ACTION_DIM = 21
 
 # MAX_ACTION = torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], dtype=torch.double).to(DEVICE)
 # MIN_ACTION = torch.tensor([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1], dtype=torch.double).to(DEVICE)

@@ -65,12 +65,12 @@ def train(agent, sim, replay_buffer):
         while True:
             total_timesteps += 1
 
-            action = agent.select_action(np.array(state), noise=cons.POLICY_NOISE)
+            action, movement = agent.select_action(np.array(state))
 
             if arm == 'right':
-                sim.step_right(action)
+                sim.step_right(movement)
             else:
-                sim.step_left(action)
+                sim.step_left(movement)
 
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()

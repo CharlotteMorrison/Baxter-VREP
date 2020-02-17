@@ -5,6 +5,7 @@ from utils import output_video, plot_results
 import time
 import psutil
 from utils import plot_loss
+import torch
 # --------------------------------
 # for code performance profiling
 # import cProfile
@@ -65,12 +66,12 @@ def train(agent, sim, replay_buffer):
         while True:
             total_timesteps += 1
 
-            action, movement = agent.select_action(np.array(state))
+            action = agent.select_action(np.array(state), noise=cons.POLICY_NOISE).tolist()[0]
 
             if arm == 'right':
-                sim.step_right(movement)
+                sim.step_right(action)
             else:
-                sim.step_left(movement)
+                sim.step_left(action)
 
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()
@@ -120,8 +121,7 @@ def train(agent, sim, replay_buffer):
                 done = True
 
             score.append(reward)
-
-            replay_buffer.add(state, action, reward, new_state, done)
+            replay_buffer.add(state, torch.tensor(action, dtype=torch.float32), reward, new_state, done)
 
             # profile.enable()
             agent.train(replay_buffer, cons.BATCH_SIZE)

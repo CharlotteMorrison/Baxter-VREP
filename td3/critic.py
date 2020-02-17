@@ -12,7 +12,7 @@ class Critic(nn.Module):
         self.conv_layer2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2)
         self.conv_layer3 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1)
 
-        self.lin_layer1 = nn.Linear(4032, 512)   # 3136
+        self.lin_layer1 = nn.Linear(3136, 512)   # 3136
         self.lin_layer2 = nn.Linear(512, 1)
 
         self.conv_layer4 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=8, stride=4)

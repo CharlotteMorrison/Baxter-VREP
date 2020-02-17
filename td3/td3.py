@@ -16,13 +16,11 @@ class TD3(object):
         state_dim = cons.STATE_DIM.flatten().shape[0]
         action_dim = cons.ACTION_DIM
         self.actor = Actor(state_dim, action_dim, cons.MAX_ACTION).to(cons.DEVICE)
-        # self.actor_target = copy.deepcopy(self.actor).float()
         self.actor_target = Actor(state_dim,  action_dim, cons.MAX_ACTION).to(cons.DEVICE)
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=3e-4)  # or 1e-3
 
         self.critic = Critic(state_dim,  action_dim).to(cons.DEVICE)
-        # self.critic_target = copy.deepcopy(self.critic).float()
         self.critic_target = Critic(state_dim,  action_dim).to(cons.DEVICE)
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)  # or 1e-3
@@ -38,18 +36,18 @@ class TD3(object):
                 noise (float): how much noise to add to actions
             Returns:
                 action (list): nn action results
-                movement (list): movements mapped to actions for robot
-
         """
 
         state = torch.FloatTensor(state).to(cons.DEVICE).unsqueeze(0).unsqueeze(0)
         action = self.actor(state)
-        movement = self.convert_action(action)
+        action = (torch.randn_like(action) * noise).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
+        return torch.clamp(action, cons.MIN_ACTION, cons.MAX_ACTION).float()
 
-        policy_noise = (torch.randn_like(movement) * noise).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
-        movement = torch.add(movement, policy_noise)
-
-        return action, torch.clamp(movement, cons.MIN_ACTION, cons.MAX_ACTION).float()
+        # for discretized actions
+        # movement = self.convert_action(action)
+        # policy_noise = (torch.randn_like(movement) * noise).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
+        # movement = torch.add(movement, policy_noise)
+        # return action, torch.clamp(movement, cons.MIN_ACTION, cons.MAX_ACTION).float()
 
     def convert_action(self, action):
         """ reshape torch.Size([1, 21]) to torch.Size([3, 7)] and map values to movements
@@ -76,7 +74,7 @@ class TD3(object):
 
             state = torch.from_numpy(state).float().to(cons.DEVICE)                 # torch.Size([100, 84, 84])
             next_state = torch.from_numpy(next_state).float().to(cons.DEVICE)       # torch.Size([100, 84, 84])
-            action = torch.from_numpy(action).to(cons.DEVICE)                       # torch.Size([100, 21])
+            action = torch.from_numpy(action).float().to(cons.DEVICE)               # torch.Size([100, 7])
             reward = torch.as_tensor(reward, dtype=torch.float32).to(cons.DEVICE)   # torch.Size([100])
             done = torch.as_tensor(done, dtype=torch.float32).to(cons.DEVICE)       # torch.Size([100])
 
@@ -90,7 +88,7 @@ class TD3(object):
                 next_action = self.actor_target(next_state.unsqueeze(1))
                 noise = (torch.rand_like(next_action) *
                          cons.POLICY_NOISE).clamp(-cons.NOISE_CLIP, cons.NOISE_CLIP)
-                next_action = torch.reshape(torch.clamp((next_action + noise).flatten(), -1, 1), (100, 21))
+                next_action = torch.reshape(torch.clamp((next_action + noise).flatten(), -1, 1), (100, 7))
 
                 # Compute the target Q value
                 target_q1, target_q2 = self.critic(state.float(), next_action.float())
@@ -116,7 +114,7 @@ class TD3(object):
             if self.total_it % cons.POLICY_FREQ == 0:  # update the actor policy less frequently
 
                 # compute the actor loss
-                q_action = self.actor(state.unsqueeze(1)).float()
+                q_action = self.actor(state.unsqueeze(1)).float().detach()
 
                 # actor_loss = -self.critic.get_q(state, self.actor(state.unsqueeze(1)).float()).mean()
                 actor_loss = -self.critic.get_q(state, q_action).mean()

@@ -29,15 +29,15 @@ BATCH_SIZE = 100
 BUFFER_SIZE = 100000   # reduced from 1000000 for laptop, TODO increase size for testing
 GAMMA = 0.99  # discount
 TAU = 0.005
-POLICY_NOISE = 0.02  # adjusted from .2, due to scale of movement
-NOISE_CLIP = 0.05    # adjusted from .5, due to scale of movement
+POLICY_NOISE = 0.2  # adjusted from .2, due to scale of movement
+NOISE_CLIP = 0.5    # adjusted from .5, due to scale of movement
 POLICY_FREQ = 2
 
 # environment parameters
 STATE_DIM = torch.empty(84, 84)
 MAX_ACTION = 0.1
 MIN_ACTION = -0.1
-ACTION_DIM = 21
+ACTION_DIM = 7
 
 # MAX_ACTION = torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1], dtype=torch.double).to(DEVICE)
 # MIN_ACTION = torch.tensor([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1], dtype=torch.double).to(DEVICE)

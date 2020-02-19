@@ -146,16 +146,11 @@ class VrepSim(object):
             return False
 
     def get_input_image(self):
-
         error_code, resolution, image = vrep.simxGetVisionSensorImage(self.clientID, self.input_cam, 0,
                                                                       vrep.simx_opmode_buffer)
-
         image = np.array(image, dtype=np.uint8)
-
         image.resize([resolution[0], resolution[1], 3])
-
         image = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
-
         return image
 
     def get_video_image(self):
@@ -182,7 +177,6 @@ class VrepSim(object):
         for x in range(0, 7):
             vrep.simxSetJointTargetPosition(self.clientID, self.joint_array[x], self.joint_org_position[x],
                                             vrep.simx_opmode_oneshot_wait)
-        # TODO put back to 1
         time.sleep(1)
 
     def full_sim_reset(self):

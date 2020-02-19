@@ -26,6 +26,7 @@ def train(agent, sim, replay_buffer):
 
     rewards_total_frame = []
     rewards_total_episode = []
+    rewards_total_average = []
     actor_loss_episode = []
     critic_loss_episode = []
     # stacked_frames = 0
@@ -49,7 +50,6 @@ def train(agent, sim, replay_buffer):
         episode += 1
         state = sim.get_input_image()
 
-        # state, stacked_frames = stack_frames(stacked_frames, state, True, cons.NUM_FRAMES_STACKED)
         score = []
         video_array = []
         distance = sim.calc_distance()
@@ -76,24 +76,9 @@ def train(agent, sim, replay_buffer):
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()
 
-            # print('Distance: {}'.format(distance))
-            # new_state, stacked_frames = stack_frames(stacked_frames, new_state, False, cons.NUM_FRAMES_STACKED)
             video_array.append(sim.get_input_image())
             # TODO create a more robust reward, move to function and apply to this and populate
-            # TODO limit the number of steps in episode somewhere between 25 (used in populate) and 50.
             # determine reward after movement
-
-            # Richards implementation- using defined rewards
-
-            # if new_distance > distance:
-            #     reward = -1
-            #     index += 1  # tracks the number of 'bad' moves, if too many bad moves in a row, reset.
-            # elif new_distance == distance:
-            #     reward = 0
-            #     index = 0
-            # else:
-            #    reward = 1
-            #    index = 0  # if it makes a good move, then reset the count
 
             # try using pure distance for reward
             reward = distance - new_distance
@@ -102,9 +87,9 @@ def train(agent, sim, replay_buffer):
             else:
                 index = 0
 
+            # TODO update for multi-arm
             # check for collision state/ if done
 
-            # TODO update for multi-arm
             right_arm_collision_state = sim.get_collision_state()
 
             if new_distance < cons.SOLVED_DISTANCE:
@@ -171,6 +156,8 @@ def train(agent, sim, replay_buffer):
                 mean_reward_interval = sum(rewards_total_episode[-cons.REPORT_INTERVAL:]) / cons.REPORT_INTERVAL
                 mean_reward_all = round(sum(rewards_total_episode) / len(rewards_total_episode), 2)
 
+                rewards_total_average.append(mean_reward_all)
+
                 # add in loss values
                 actor_loss_episode.append(sum(agent.actor_loss_plot) / len(agent.actor_loss_plot))
                 critic_loss_episode.append(sum(agent.critic_loss_plot) / len(agent.critic_loss_plot))
@@ -181,6 +168,7 @@ def train(agent, sim, replay_buffer):
                 elapsed_time = time.time() - start_time
 
                 if video_record:
+                    print('should be video')
                     output_video(episode, video_array, cons.SIZE, "td3/videos/" + cons.DEFAULT_NAME)
 
                 if solved:
@@ -207,6 +195,7 @@ def train(agent, sim, replay_buffer):
 
                 if episode % cons.REPORT_INTERVAL == 0 and episode > 0:
                     plot_results(rewards_total_episode, cons.PLOT_NAME)
+                    plot_results(rewards_total_average, 'td3/results/plots/Baxter_TD3_avg_reward.png')
                     plot_loss(actor_loss_episode, critic_loss_episode, 'td3/results/plots/Baxter_TD3_loss_plot.png')
 
                     print("\n*** Episode " + str(episode) + " ***")
@@ -217,10 +206,13 @@ def train(agent, sim, replay_buffer):
                     print("Elapsed Time: ", time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
                     print("Memory Usage: " + str(system_info.percent) + "%")
 
+                ''' 
                 if right_arm_collision_state:
                     sim.full_sim_reset()
                 else:
                     sim.reset_sim()
+                '''
+                sim.reset_sim()
                 break
 
         system_info = psutil.virtual_memory()
@@ -229,4 +221,5 @@ def train(agent, sim, replay_buffer):
             break
 
     plot_results(rewards_total_episode, cons.PLOT_NAME)
+    plot_results(rewards_total_average, 'td3/results/plots/Baxter_TD3_avg_reward.png')
     plot_loss(actor_loss_episode, critic_loss_episode, 'td3/results/plots/Baxter_TD3_loss_plot.png')

@@ -107,7 +107,7 @@ class TD3(object):
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_optimizer.step()
-            print('Critic loss: {}'.format(critic_loss.item()))
+            # print('Critic loss: {}'.format(critic_loss.item()))
 
             self.critic_loss_plot.append(critic_loss.item())
             # delayed policy updates
@@ -123,7 +123,7 @@ class TD3(object):
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()
                 self.actor_optimizer.step()
-                print('Actor loss: {}'.format(actor_loss.item()))
+                # print('Actor loss: {}'.format(actor_loss.item()))
                 self.actor_loss_plot.append(actor_loss.item())
 
                 # Update the frozen target models

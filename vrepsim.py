@@ -187,5 +187,6 @@ class VrepSim(object):
             error_code, server_state = vrep.simxGetInMessageInfo(self.clientID, vrep.simx_headeroffset_server_state)
             if server_state == 0:
                 is_running = False
-
         vrep.simxStartSimulation(self.clientID, vrep.simx_opmode_blocking)
+        time.sleep(1)
+

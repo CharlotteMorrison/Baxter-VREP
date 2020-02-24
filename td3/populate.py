@@ -13,7 +13,7 @@ def populate_buffer(sim, replay_buffer):
     # once replay buffer is full, use the pre-made one to populate observe step
     replay_counter = 0
 
-    with open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "rb") as pk_file:
+    with open("/home/student/Baxter_Code/Baxter-VREP/td3/temp/buffer-dist.pkl", "rb") as pk_file:
         while True:
             try:
                 data = pickle.load(pk_file)
@@ -71,7 +71,7 @@ def populate_buffer(sim, replay_buffer):
             sim.reset_sim()
 
         if x % 25 == 0:
-            save_buffer = open("D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl", "ab")
+            save_buffer = open("/home/student/Baxter_Code/Baxter-VREP/td3/temp/buffer-dist.pkl", "ab")
             pickle.dump(buffer_storage, save_buffer)
             save_buffer.close()
             buffer_storage = []

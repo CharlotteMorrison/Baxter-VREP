@@ -168,7 +168,7 @@ def train(agent, sim, replay_buffer):
                 elapsed_time = time.time() - start_time
 
                 if video_record:
-                    print('should be video')
+                    # print('should be video')
                     output_video(episode, video_array, cons.SIZE, "td3/videos/" + cons.DEFAULT_NAME)
 
                 if solved:

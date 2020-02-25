@@ -3,6 +3,7 @@ import sys
 import pickle
 import torch
 import td3.constants as cons
+import psutil
 
 
 def populate_buffer(sim, replay_buffer):
@@ -21,6 +22,14 @@ def populate_buffer(sim, replay_buffer):
                     replay_buffer.add(test[0], torch.tensor(test[1], dtype=torch.float32), test[2], test[3], test[4])
                     buffer_storage.append([test[0], test[1], test[2], test[3], test[4]])
                     replay_counter += 1
+                    if replay_counter >= cons.BUFFER_SIZE:
+                        break
+                    # break if too many resources used
+                    system_info = psutil.virtual_memory()
+                    if system_info.percent > 98:
+                        # print("System at 98%")
+                        break
+
             except EOFError:
                 print('Reached end of file.')
                 break

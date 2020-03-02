@@ -4,6 +4,7 @@ import pickle
 import torch
 import td3.constants as cons
 import psutil
+import platform
 
 
 def populate_buffer(sim, replay_buffer):
@@ -14,7 +15,11 @@ def populate_buffer(sim, replay_buffer):
     # once replay buffer is full, use the pre-made one to populate observe step
     replay_counter = 0
 
-    with open("/home/student/Baxter_Code/Baxter-VREP/td3/temp/buffer-dist.pkl", "rb") as pk_file:
+    if platform.system() == 'Windows':
+        file_loc = "D:\\git\\PythonProjects\\Baxter-VREP\\td3\\temp\\buffer-dist.pkl"
+    else:
+        file_loc = "/home/student/Baxter_Code/Baxter-VREP/td3/temp/buffer-dist.pkl"
+    with open(file_loc, "rb") as pk_file:
         while True:
             try:
                 data = pickle.load(pk_file)
@@ -80,7 +85,7 @@ def populate_buffer(sim, replay_buffer):
             sim.reset_sim()
 
         if x % 25 == 0:
-            save_buffer = open("/home/student/Baxter_Code/Baxter-VREP/td3/temp/buffer-dist.pkl", "ab")
+            save_buffer = open(file_loc, "ab")
             pickle.dump(buffer_storage, save_buffer)
             save_buffer.close()
             buffer_storage = []

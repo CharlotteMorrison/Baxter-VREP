@@ -45,3 +45,12 @@ $ virtualenv <env_name>
 $ source <env_name>/bin/activate
 (<env_name>)$ pip install -r path/to/requirements.txt
 ```
+### Run VREP Headless
+Launch VREP with following command. (You'll need to update the path to the vrep file.)
+      
+    V-REP/vrep.sh -h -q /home/cislocal/Jupyter/V-REP_Scenes/baxter.ttt -gREMOTEAPISERVERSERVICE_19999_FALSE_FALSE
+Then in the Vrep_SIM class I had the following line to start the simulation:
+           
+    errorCode = vrep.simxStartSimulation(self.clientID, vrep.simx_opmode_oneshot_wait)
+            
+I placed this line after the print('Connected to remote API server') in the Vrep_SIM class.

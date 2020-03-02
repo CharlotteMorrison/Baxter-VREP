@@ -118,8 +118,9 @@ class VrepSim(object):
 
         error_code, self.xyz_hand = vrep.simxGetObjectPosition(self.clientID, self.hand, -1, vrep.simx_opmode_buffer)
 
-        error_code, self.xyz_target = vrep.simxGetObjectPosition(self.clientID, self.target, -1,
-                                                                 vrep.simx_opmode_buffer)
+        # removed getting target location each time- using the static initial location
+        # error_code, self.xyz_target = vrep.simxGetObjectPosition(self.clientID, self.target, -1,
+        #                                                          vrep.simx_opmode_buffer)
 
         # need to check if this formula is calculating distance properly
         distance = math.sqrt(

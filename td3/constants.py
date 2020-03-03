@@ -16,7 +16,7 @@ VIDEO_INTERVAL = 1  # change to 1 to record all videos
 NUM_FRAMES_STACKED = 4
 SOLVED_DISTANCE = 0.12
 WRITE_TO_FILE = True
-REPORT_INTERVAL = 1
+REPORT_INTERVAL = 1  # write all the reports
 SIZE = (512, 512)
 
 # TD3 hyperparameters from addressing function approx. err paper

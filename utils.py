@@ -28,13 +28,7 @@ def output_video(episode, video_array, size, default_name):
     for x in range(5):
         video_array.append(last_frame)
     for x in range(len(video_array)):
-<<<<<<< HEAD
         out.write(video_array[x])
-=======
-        for y in range(5):
-            out.write(video_array[x])
-
->>>>>>> 9aa793d... model saves added
     out.release()
 
 

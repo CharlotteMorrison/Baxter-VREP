@@ -23,7 +23,7 @@ def train(agent, sim, replay_buffer):
     # profile = cProfile.Profile()
     arm = 'right'  # replace later with parameter, or etc. for dual arms
     total_timesteps = 0
-
+    best_avg = -10
     rewards_total_frame = []
     rewards_total_episode = []
     rewards_total_average = []
@@ -75,8 +75,7 @@ def train(agent, sim, replay_buffer):
 
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()
-
-            video_array.append(sim.get_input_image())
+            video_array.append(new_state)
             # TODO create a more robust reward, move to function and apply to this and populate
             # determine reward after movement
 
@@ -156,6 +155,10 @@ def train(agent, sim, replay_buffer):
                 mean_reward_interval = sum(rewards_total_episode[-cons.REPORT_INTERVAL:]) / cons.REPORT_INTERVAL
                 mean_reward_all = round(sum(rewards_total_episode) / len(rewards_total_episode), 2)
 
+                if best_avg < mean_reward_100:
+                    best_avg = mean_reward_100
+                    agent.save("best_avg", "saves")
+
                 rewards_total_average.append(mean_reward_all)
 
                 # add in loss values
@@ -192,8 +195,9 @@ def train(agent, sim, replay_buffer):
                                                   distance, system_info.used))
 
                 if episode % cons.REPORT_INTERVAL == 0 and episode > 0:
-                    plot_results(rewards_total_episode, cons.PLOT_NAME)
-                    plot_results(rewards_total_average, 'td3/results/plots/Baxter_TD3_avg_reward.png')
+                    plot_results(rewards_total_episode, cons.PLOT_NAME, 'Episode Total Average Reward')
+                    plot_results(rewards_total_average, 'td3/results/plots/Baxter_TD3_avg_reward.png',
+                                 'Total Average Reward')
                     plot_loss(actor_loss_episode, critic_loss_episode, 'td3/results/plots/Baxter_TD3_loss_plot.png')
 
                     print("\n*** Episode " + str(episode) + " ***")
@@ -218,6 +222,6 @@ def train(agent, sim, replay_buffer):
         if system_info.percent > 98:
             break
 
-    plot_results(rewards_total_episode, cons.PLOT_NAME)
-    plot_results(rewards_total_average, 'td3/results/plots/Baxter_TD3_avg_reward.png')
+    plot_results(rewards_total_episode, cons.PLOT_NAME, 'Episode Total Average Reward')
+    plot_results(rewards_total_average, 'td3/results/plots/Baxter_TD3_avg_reward.png', 'Total Average Reward')
     plot_loss(actor_loss_episode, critic_loss_episode, 'td3/results/plots/Baxter_TD3_loss_plot.png')

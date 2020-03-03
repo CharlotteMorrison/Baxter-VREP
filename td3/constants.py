@@ -19,7 +19,6 @@ WRITE_TO_FILE = True
 REPORT_INTERVAL = 1
 SIZE = (512, 512)
 
-
 # TD3 hyperparameters from addressing function approx. err paper
 EXPLORATION = 5000000
 OBSERVATION = 10000

@@ -21,8 +21,7 @@ def preprocess_frame(frame, device):
 
 
 def output_video(episode, video_array, size, default_name):
-    out = cv2.VideoWriter("videos/" + default_name + "_episode-" + str(episode) + ".avi",
-                          cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+    out = cv2.VideoWriter(default_name + "_episode-" + str(episode) + ".avi", cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
 
     last_frame = video_array[len(video_array) - 1]
 
@@ -30,7 +29,8 @@ def output_video(episode, video_array, size, default_name):
         video_array.append(last_frame)
 
     for x in range(len(video_array)):
-        out.write(video_array[x])
+        for y in range(5):
+            out.write(video_array[x])
 
     out.release()
 
@@ -55,11 +55,13 @@ def stack_frames(stacked_frames, frame, is_new_episode, num_frames_stacked):
     return stacked_state, stacked_frames
 
 
-def plot_results(rewards_total_episode, plot_name):
+def plot_results(rewards_total_episode, plot_save, plot_name):
     plt.figure(figsize=(12, 5))
-    plt.title("Rewards Per Episode")
+    plt.title(plot_name)
+    plt.xlabel('Episodes')
+    plt.ylabel('Average Reward')
     plt.plot(rewards_total_episode, alpha=0.6, color='red')
-    plt.savefig(plot_name)
+    plt.savefig(plot_save)
     plt.close()
 
 

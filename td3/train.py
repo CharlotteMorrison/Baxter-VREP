@@ -75,7 +75,7 @@ def train(agent, sim, replay_buffer):
 
             new_distance = sim.calc_distance()
             new_state = sim.get_input_image()
-            video_array.append(new_state)
+            video_array.append(sim.get_video_image())
             # TODO create a more robust reward, move to function and apply to this and populate
             # determine reward after movement
 
@@ -157,7 +157,7 @@ def train(agent, sim, replay_buffer):
 
                 if best_avg < mean_reward_100:
                     best_avg = mean_reward_100
-                    agent.save("best_avg", "saves")
+                    agent.save("best_avg", "/saves")
 
                 rewards_total_average.append(mean_reward_all)
 
@@ -173,7 +173,7 @@ def train(agent, sim, replay_buffer):
                 if video_record:
                     output_video(episode, video_array, cons.SIZE, "td3/videos/" + cons.DEFAULT_NAME)
                 if solved:
-                    output_video(episode, video_array, cons.SIZE, "td3/videos/" + cons.DEFAULT_NAME)
+                    output_video(episode, video_array, cons.SIZE, "td3/videos/" + cons.DEFAULT_NAME + "_solved")
 
                 if cons.WRITE_TO_FILE:
 
